@@ -31,6 +31,17 @@ ALLOWED_HOSTS = [
 if _render_hostname and _render_hostname not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(_render_hostname)
 
+_default_csrf_trusted_origins = 'http://localhost:5173,http://127.0.0.1:5173'
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv('CSRF_TRUSTED_ORIGINS', _default_csrf_trusted_origins).split(',')
+    if origin.strip()
+]
+if _render_hostname:
+    render_origin = f'https://{_render_hostname}'
+    if render_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(render_origin)
+
 
 # Application definition
 
@@ -77,6 +88,11 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 # Database
 # Render provides DATABASE_URL when the Postgres service is linked.
